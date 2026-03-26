@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexaAI - Free Unlimited AI Video Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0f; }
+        ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 3px; }
+        
+        body { background: #06060b; color: #fff; overflow-x: hidden; }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #818cf8, #c084fc, #f472b6, #fb923c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .gradient-text-2 {
+            background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(150px);
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        
+        .glow-purple { background: #8b5cf6; top: -200px; left: 50%; transform: translateX(-50%); }
+        .glow-blue { background: #3b82f6; top: 200px; left: -100px; }
+        .glow-pink { background: #ec4899; top: 100px; right: -100px; }
+        
+        .card-glass {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+        }
+        
+        .card-glass:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.12);
+        }
+        
+        .generate-btn {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .generate-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .generate-btn:hover::before { left: 100%; }
+        
+        .floating { animation: floating 6s ease-in-out infinite; }
+        .floating-delay { animation: floating 6s ease-in-out 2s infinite; }
+        
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes progress-bar {
+            0% { width: 0%; }
+            20% { width: 15%; }
+            40% { width: 35%; }
+            60% { width: 55%; }
+            75% { width: 75%; }
+            90% { width: 90%; }
+            100% { width: 100%; }
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        .animate-slideUp { animation: slideUp 0.8s ease-out forwards; }
+        .animate-fadeIn { animation: fadeIn 1s ease-out forwards; }
+        
+        .video-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .video-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3);
+        }
+        
+        .video-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        
+        .video-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 10;
+        }
+        
+        .video-card:hover .video-overlay { opacity: 1; }
+        
+        .prompt-input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+        
+        .prompt-input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            background: rgba(255,255,255,0.08);
+        }
+        
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .nav-blur {
+            background: rgba(6, 6, 11, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .progress-bar-animated {
+            animation: progress-bar 8s ease-in-out forwards;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7, #c084fc);
+        }
+        
+        .loading-shimmer {
+            background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        
+        .tab-active {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+        }
+        
+        .tab-inactive {
+            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .style-card {
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .style-card:hover, .style-card.selected {
+            border-color: #6366f1;
+            transform: scale(1.05);
+        }
+        
+        .dot-pulse {
+            display: inline-flex;
+            gap: 4px;
+        }
+        
+        .dot-pulse span {
+            width: 6px; height: 6px;
+            background: #8b5cf6;
+            border-radius: 50%;
+            animation: dotPulse 1.4s infinite;
+        }
+        
+        .dot-pulse span:nth-child(2) { animation-delay: 0.2s; }
+        .dot-pulse span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes dotPulse {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        
+        .modal-backdrop {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+        }
+        
+        .star-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .tool-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(139, 92, 246, 0.3);
+            transform: scale(0);
+            animation: rippleEffect 0.6s linear;
+            pointer-events: none;
+        }
+        
+        @keyframes rippleEffect {
+            to { transform: scale(4); opacity: 0; }
+        }
+        
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        @media (max-width: 640px) {
+            .gallery-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .aspect-video-custom {
+            aspect-ratio: 16/9;
+        }
+        
+        .neon-border {
+            position: relative;
+        }
+        
+        .neon-border::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 20px;
+            padding: 2px;
+            background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899, #6366f1);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .neon-border:hover::before { opacity: 1; }
+
+        .typewriter-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background: #8b5cf6;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Star Background Canvas -->
+    <canvas id="starCanvas" class="star-bg"></canvas>
+
+    <!-- Navigation -->
+    <nav class="nav-blur fixed top-0 w-full z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                    <i class="fas fa-bolt text-white text-lg"></i>
+                </div>
+                <span class="text-xl font-bold">Nexa<span class="gradient-text">AI</span></span>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-8">
+                <a href="#generator" class="text-sm text-gray-300 hover:text-white transition-colors">Generator</a>
+                <a href="#tools" class="text-sm text-gray-300 hover:text-white transition-colors">AI Tools</a>
+                <a href="#gallery" class="text-sm text-gray-300 hover:text-white transition-colors">Gallery</a>
+                <a href="#features" class="text-sm text-gray-300 hover:text-white transition-colors">Features</a>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                    <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                    <span class="text-xs text-emerald-400 font-medium">All Systems Online</span>
+                </div>
+                <button onclick="scrollToGenerator()" class="generate-btn px-5 py-2.5 rounded-xl text-sm font-semibold text-white">
+                    Start Creating
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center pt-20 px-4">
+        <div class="hero-glow glow-purple"></div>
+        <div class="hero-glow glow-blue"></div>
+        <div class="hero-glow glow-pink"></div>
+        
+        <div class="max-w-5xl mx-auto text-center relative z-10">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 mb-8 animate-slideUp">
+                <i class="fas fa-sparkles text-indigo-400 text-sm"></i>
+                <span class="text-sm text-indigo-300">100% Free • No Limits • No Signup Required</span>
+            </div>
+            
+            <h1 class="text-5xl md:text-7xl lg:text-8xl font-black leading-tight mb-6" style="animation: slideUp 0.8s ease-out 0.2s forwards; opacity: 0;">
+                <span class="gradient-text">AI Video</span><br>
+                <span class="text-white">Generator</span>
+            </h1>
+            
+            <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-8 leading-relaxed" style="animation: slideUp 0.8s ease-out 0.4s forwards; opacity: 0;">
+                Transform your text into stunning cinematic videos with our free AI-powered platform. 
+                No credits, no subscriptions, <span class="text-white font-semibold">unlimited generation</span>.
+            </p>
+            
+            <div class="flex flex-wrap justify-center gap-3 mb-12" style="animation: slideUp 0.8s ease-out 0.6s forwards; opacity: 0;">
+                <span class="tool-badge"><i class="fas fa-video text-indigo-400"></i> Text to Video</span>
+                <span class="tool-badge"><i class="fas fa-image text-purple-400"></i> Image to Video</span>
+                <span class="tool-badge"><i class="fas fa-wand-magic-sparkles text-pink-400"></i> AI Effects</span>
+                <span class="tool-badge"><i class="fas fa-music text-amber-400"></i> AI Audio</span>
+                <span class="tool-badge"><i class="fas fa-film text-emerald-400"></i> 4K Quality</span>
+                <span class="tool-badge"><i class="fas fa-infinity text-cyan-400"></i> Unlimited</span>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto" style="animation: slideUp 0.8s ease-out 0.8s forwards; opacity: 0;">
+                <div class="card-glass rounded-2xl p-4">
+                    <div class="stat-number" id="videoCount">2.4M+</div>
+                    <div class="text-xs text-gray-400">Videos Generated</div>
+                </div>
+                <div class="card-glass rounded-2xl p-4">
+                    <div class="stat-number">500K+</div>
+                    <div class="text-xs text-gray-400">Active Users</div>
+                </div>
+                <div class="card-glass rounded-2xl p-4">
+                    <div class="stat-number">4K</div>
+                    <div class="text-xs text-gray-400">Max Resolution</div>
+                </div>
+                <div class="card-glass rounded-2xl p-4">
+                    <div class="stat-number">∞</div>
+                    <div class="text-xs text-gray-400">Free Credits</div>
+                </div>
+            </div>
+            
+            <div class="mt-8" style="animation: slideUp 0.8s ease-out 1s forwards; opacity: 0;">
+                <button onclick="scrollToGenerator()" class="group generate-btn px-8 py-4 rounded-2xl text-lg font-bold text-white inline-flex items-center gap-3">
+                    <i class="fas fa-play"></i>
+                    Start Generating Now
+                    <i class="fas fa-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Tools Section -->
+    <section id="tools" class="py-20 px-4 relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <span class="text-indigo-400 text-sm font-semibold uppercase tracking-wider">Powerful AI Tools</span>
+                <h2 class="text-4xl md:text-5xl font-bold mt-3 mb-4">All Premium AI Tools, <span class="gradient-text">Completely Free</span></h2>
+                <p class="text-gray-400 max-w-xl mx-auto">Access every AI tool you need without spending a penny. No hidden charges, no premium tiers.</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Tool 1 -->
+                <div class="card-glass rounded-2xl p-6 transition-all duration-300 neon-border">
+                    <div class="feature-icon bg-gradient-to-br from-indigo-500/20 to-indigo-600/20 mb-4">
+                        <i class="fas fa-video text-indigo-400"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Text to Video</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-4">Generate stunning cinematic videos from text descriptions. Supports multiple styles and up to 4K resolution.</p>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-400 text-xs font-medium">Free</span>
+                        <span class="px-2 py-1 rounded-md bg-indigo-500/10 text-indigo-400 text-xs font-medium">Unlimited</span>
+                    </div>
+                </div>
+                
+                <!-- Tool 2 -->
+                <div class="card-glass rounded-2xl p-6 transition-all duration-300 neon-border">
+                    <div class="feature-icon bg-gradient-to-br from-purple-500/20 to-purple-600/20 mb-4">
+                        <i class="fas fa-image text-purple-400"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Image to Video</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-4">Animate any static image into a dynamic video. Add motion, effects, and bring your images to life.</p>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-400 text-xs font-medium">Free</span>
+                        <span class="px-2 py-1 rounded-md bg-indigo-500/10 text-indigo-400 text-xs font-medium">Unlimited</span>
+                    </div>
+                </div>
+                
+                <!-- Tool 3 -->
+                <div class="card-glass rounded-2xl p-6 transition-all duration-300 neon-border">
+                    <div class="feature-icon bg-gradient-to-br from-pink-500/20 to-pink-600/20 mb-4">
+                        <i class="fas fa-wand-magic-sparkles text-pink-400"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">AI Video Effects</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-4">Apply Hollywood-grade visual effects to any video. Includes slow-mo, transitions, color grading, and more.</p>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-400 text-xs font-medium">Free</span>
+                        <span class="px-2 py-1 rounded-md bg-indigo-500/10 text-indigo-400 text-xs font-medium">Unlimited</span>
+                    </div>
+                </div>
+                
+                <!-- Tool 4 -->
+                <div class="card-glass rounded-2xl p-6 transition-all duration-300 neon-border">
+                    <div class="feature-icon bg-gradient-to-br from-amber-500/20 to-amber-600/20 mb-4">
+                        <i class="fas fa-paint-brush text-amber-400"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">AI Art Generator</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-4">Create breathtaking digital art, illustrations, and designs from text prompts. Multiple art styles available.</p>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-400 text-xs font-medium">Free</span>
+                        <span class="px-2 py-1 rounded-md bg-indigo-500/10 text-indigo-400 text-xs font-medium">Unlimited</span>
+                    </div>
+                </div>
+                
+                <!-- Tool 5 -->
+                <div class="card-glass rounded-2xl p-6 transition-all duration-300 neon-border">
+                    <div class="feature-icon bg-gradient-to-br from-cyan-500/20 to-cyan-600/20 mb-4">
+                        <i class="fas fa-music text-cyan-400"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">AI Music & Audio</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-4">Generate custom music, sound effects, and voiceovers for your videos. Professional quality audio.</p>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-400 text-xs font-medium">Free</span>
+                        <span class="px-2 py-1 rounded-md bg-indigo-500/10 text-indigo-400 text-xs font-medium">Unlimited</span>
+                    </div>
+                </div>
+                
+                <!-- Tool 6 -->
+                <div class="card-glass rounded-2xl p-6 transition-all duration-300 neon-border">
+                    <div class="feature-icon bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 mb-4">
+                        <i class="fas fa-face-smile text-emerald-400"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Face Animation</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-4">Animate faces, lip-sync to audio, create talking avatars. Perfect for content creation and presentations.</p>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-400 text-xs font-medium">Free</span>
+                        <span class="px-2 py-1 rounded-md bg-indigo-500/10 text-indigo-400 text-xs font-medium">Unlimited</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Generator Section -->
+    <section id="generator" class="py-20 px-4 relative">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-950/20 to-transparent pointer-events-none"></div>
+        
+        <div class="max-w-5xl mx-auto relative z-10">
+            <div class="text-center mb-12">
+                <span class="text-indigo-400 text-sm font-semibold uppercase tracking-wider">AI Video Studio</span>
+                <h2 class="text-4xl md:text-5xl font-bold mt-3 mb-4">Create <span class="gradient-text">Amazing Videos</span></h2>
+                <p class="text-gray-400 max-w-xl mx-auto">Describe your vision and let AI bring it to life in seconds</p>
+            </div>
+
+            <!-- Generator Tabs -->
+            <div class="flex justify-center gap-2 mb-8 flex-wrap">
+                <button onclick="switchTab('text')" id="tab-text" class="tab-active px-5 py-2.5 rounded-xl text-sm font-semibold transition-all">
+                    <i class="fas fa-keyboard mr-2"></i>Text to Video
+                </button>
+                <button onclick="switchTab('image')" id="tab-image" class="tab-inactive px-5 py-2.5 rounded-xl text-sm font-semibold transition-all">
+                    <i class="fas fa-image mr-2"></i>Image to Video
+                </button>
+                <button onclick="switchTab('edit')" id="tab-edit" class="tab-inactive px-5 py-2.5 rounded-xl text-sm font-semibold transition-all">
+                    <i class="fas fa-scissors mr-2"></i>Video Editor
+                </button>
+            </div>
+            
+            <!-- Generator Card -->
+            <div class="card-glass rounded-3xl p-6 md:p-8">
+                <!-- Text to Video Tab -->
+                <div id="panel-text" class="tab-panel">
+                    <div class="mb-6">
+                        <label class="text-sm text-gray-400 mb-2 block">Describe your video</label>
+                        <textarea id="videoPrompt" class="prompt-input w-full rounded-2xl px-5 py-4 text-white placeholder-gray-500 resize-none outline-none text-base" rows="4" placeholder="A majestic dragon flying over a misty mountain at sunset, cinematic lighting, 4K quality, dramatic atmosphere..."></textarea>
+                        <div class="flex justify-between mt-2">
+                            <span class="text-xs text-gray-500" id="charCount">0 / 2000</span>
+                            <button onclick="fillSamplePrompt()" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+                                <i class="fas fa-magic mr-1"></i>Try sample prompt
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Settings Row -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1.5 block">Resolution</label>
+                            <select class="prompt-input w-full rounded-xl px-4 py-3 text-white text-sm outline-none appearance-none cursor-pointer">
+                                <option value="720">720p HD</option>
+                                <option value="1080" selected>1080p Full HD</option>
+                                <option value="2k">2K QHD</option>
+                                <option value="4k">4K Ultra HD</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1.5 block">Duration</label>
+                            <select class="prompt-input w-full rounded-xl px-4 py-3 text-white text-sm outline-none appearance-none cursor-pointer">
+                                <option value="5">5 seconds</option>
+                                <option value="10" selected>10 seconds</option>
+                                <option value="15">15 seconds</option>
+                                <option value="30">30 seconds</option>
+                                <option value="60">60 seconds</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1.5 block">Aspect Ratio</label>
+                            <select class="prompt-input w-full rounded-xl px-4 py-3 text-white text-sm outline-none appearance-none cursor-pointer">
+                                <option value="16:9" selected>16:9 Landscape</option>
+                                <option value="9:16">9:16 Portrait</option>
+                                <option value="1:1">1:1 Square</option>
+                                <option value="4:3">4:3 Standard</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Style Selection -->
+                    <div class="mb-6">
+                        <label class="text-xs text-gray-400 mb-3 block">Video Style</label>
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                            <div onclick="selectStyle(this)" class="style-card selected rounded-xl overflow-hidden">
+                                <div class="aspect-square bg-gradient-to-br from-indigo-600 to-purple-700 flex flex-col items-center justify-center p-2">
+                                    <i class="fas fa-film text-white text-lg mb-1"></i>
+                                    <span class="text-[10px] text-white/80">Cinematic</span>
+                                </div>
+                            </div>
+                            <div onclick="selectStyle(this)" class="style-card rounded-xl overflow-hidden">
+                                <div class="aspect-square bg-gradient-to-br from-pink-600 to-red-700 flex flex-col items-center justify-center p-2">
+                                    <i class="fas fa-palette text-white text-lg mb-1"></i>
+                                    <span class="text-[10px] text-white/80">Anime</span>
+                                </div>
+                            </div>
+                            <div onclick="selectStyle(this)" class="style-card rounded-xl overflow-hidden">
+                                <div class="aspect-square bg-gradient-to-br from-emerald-600 to-teal-700 flex flex-col items-center justify-center p-2">
+                                    <i class="fas fa-tree text-white text-lg mb-1"></i>
+                                    <span class="text-[10px] text-white/80">Realistic</span>
+                                </div>
+                            </div>
+                            <div onclick="selectStyle(this)" class="style-card rounded-xl overflow-hidden">
+                                <div class="aspect-square bg-gradient-to-br from-amber-600 to-orange-700 flex flex-col items-center justify-center p-2">
+                                    <i class="fas fa-cube text-white text-lg mb-1"></i>
+                                    <span class="text-[10px] text-white/80">3D Render</span>
+                                </div>
+                            </div>
+                            <div onclick="selectStyle(this)" class="style-card rounded-xl overflow-hidden">
+                                <div class="aspect-square bg-gradient-to-br from-cyan-600 to-blue-700 flex flex-col items-center justify-center p-2">
+                                    <i class="fas fa-water text-white text-lg mb-1"></i>
+                                    <span class="text-[10px] text-white/80">Watercolor</span>
+                                </div>
+                            </div>
+                            <div onclick="selectStyle(this)" class="style-card rounded-xl overflow-hidden">
+                                <div class="aspect-square bg-gradient-to-br from-gray-600 to-gray-800 flex flex-col items-center justify-center p-2">
+                                    <i class="fas fa-camera text-white text-lg mb-1"></i>
+                                    <span class="text-[10px] text-white/80">Photo</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Options Toggle -->
+                    <div class="mb-6">
+                        <button onclick="toggleAdvanced()" class="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+                            <i class="fas fa-sliders" id="advancedIcon"></i>
+                            Advanced Settings
+                            <i class="fas fa-chevron-down text-xs transition-transform" id="advancedArrow"></i>
+                        </button>
+                        <div id="advancedPanel" class="hidden mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs text-gray-400 mb-1.5 block">Creativity (CFG Scale)</label>
+                                <input type="range" min="1" max="20" value="7" class="w-full accent-indigo-500" id="cfgScale">
+                                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                    <span>Strict</span>
+                                    <span id="cfgValue">7</span>
+                                    <span>Creative</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-400 mb-1.5 block">Motion Intensity</label>
+                                <input type="range" min="1" max="10" value="5" class="w-full accent-purple-500" id="motionScale">
+                                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                    <span>Subtle</span>
+                                    <span id="motionValue">5</span>
+                                    <span>Dynamic</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-400 mb-1.5 block">Negative Prompt</label>
+                                <input type="text" class="prompt-input w-full rounded-xl px-4 py-3 text-white text-sm outline-none" placeholder="blur, low quality, watermark...">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-400 mb-1.5 block">Seed (optional)</label>
+                                <input type="number" class="prompt-input w-full rounded-xl px-4 py-3 text-white text-sm outline-none" placeholder="Random">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Image to Video Tab -->
+                <div id="panel-image" class="tab-panel hidden">
+                    <div class="mb-6">
+                        <div id="dropZone" onclick="document.getElementById('imageInput').click()" class="border-2 border-dashed border-gray-700 rounded-2xl p-12 text-center cursor-pointer hover:border-indigo-500 transition-colors">
+                            <div id="uploadContent">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-500 mb-3"></i>
+                                <p class="text-gray-400 mb-1">Drag & drop an image or click to upload</p>
+                                <p class="text-xs text-gray-600">Supports JPG, PNG, WebP (max 10MB)</p>
+                            </div>
+                            <img id="previewImage" class="hidden max-h-64 mx-auto rounded-xl" />
+                            <input type="file" id="imageInput" class="hidden" accept="image/*" onchange="handleImageUpload(event)">
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <label class="text-sm text-gray-400 mb-2 block">Motion description (optional)</label>
+                        <textarea class="prompt-input w-full rounded-2xl px-5 py-4 text-white placeholder-gray-500 resize-none outline-none text-base" rows="2" placeholder="Describe how you want the image to animate... e.g., 'camera slowly zooms in while clouds move'"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Video Editor Tab -->
+                <div id="panel-edit" class="tab-panel hidden">
+                    <div class="text-center py-12">
+                        <div class="w-20 h-20 rounded-full bg-indigo-500/10 flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-scissors text-3xl text-indigo-400"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">AI Video Editor</h3>
+                        <p class="text-gray-400 mb-6 max-w-md mx-auto">Upload a video and use AI to edit, enhance, add effects, remove backgrounds, and more.</p>
+                        <button onclick="document.getElementById('videoInput').click()" class="generate-btn px-6 py-3 rounded-xl text-sm font-semibold text-white">
+                            <i class="fas fa-upload mr-2"></i>Upload Video
+                        </button>
+                        <input type="file" id="videoInput" class="hidden" accept="video/*">
+                    </div>
+                </div>
+                
+                <!-- Generate Button -->
+                <button onclick="generateVideo()" id="generateBtn" class="generate-btn w-full py-4 rounded-2xl text-lg font-bold text-white flex items-center justify-center gap-3 mt-2 relative overflow-hidden">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    Generate Video
+                    <span class="text-sm font-normal opacity-75">— It's Free!</span>
+                </button>
+                
+                <!-- Loading State -->
+                <div id="loadingState" class="hidden mt-6">
+                    <div class="card-glass rounded-2xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+                                    <i class="fas fa-cog fa-spin text-indigo-400"></i>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-sm" id="loadingTitle">Initializing AI Model...</div>
+                                    <div class="text-xs text-gray-400" id="loadingSubtitle">This may take a moment</div>
+                                </div>
+                            </div>
+                            <div class="dot-pulse">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+                            <div id="progressBar" class="h-full rounded-full progress-bar-animated"></div>
+                        </div>
+                        <div class="flex justify-between mt-2">
+                            <span class="text-xs text-gray-500" id="progressText">0%</span>
+                            <span class="text-xs text-gray-500" id="etaText">ETA: ~30s</span>
+                        </div>
+                        
+                        <!-- Processing Steps -->
+                        <div class="mt-4 space-y-2" id="processingSteps">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Result -->
+                <div id="resultArea" class="hidden mt-6">
+                    <div class="card-glass rounded-2xl overflow-hidden">
+                        <div class="aspect-video-custom bg-gradient-to-br from-indigo-900/50 to-purple-900/50 relative flex items-center justify-center" id="videoResult">
+                            <video id="resultVideo" class="w-full h-full object-cover" controls loop autoplay muted>
+                            </video>
+                            <div id="videoPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center">
+                                <div class="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mb-4 backdrop-blur-sm">
+                                    <i class="fas fa-play text-3xl text-white ml-1"></i>
+                                </div>
+                                <p class="text-white/70 text-sm">Your generated video</p>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-center justify-between flex-wrap gap-3">
+                                <div>
+                                    <h3 class="font-bold text-sm" id="resultTitle">Generated Video</h3>
+                                    <p class="text-xs text-gray-400 mt-1" id="resultMeta">1080p • 10s • Cinematic Style</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="downloadVideo()" class="px-4 py-2 rounded-xl bg-indigo-500/20 text-indigo-400 text-sm font-medium hover:bg-indigo-500/30 transition-colors">
+                                        <i class="fas fa-download mr-1.5"></i>Download
+                                    </button>
+                                    <button onclick="shareVideo()" class="px-4 py-2 rounded-xl bg-purple-500/20 text-purple-400 text-sm font-medium hover:bg-purple-500/30 transition-colors">
+                                        <i class="fas fa-share-nodes mr-1.5"></i>Share
+                                    </button>
+                                    <button onclick="generateVideo()" class="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 text-sm font-medium hover:bg-emerald-500/30 transition-colors">
+                                        <i class="fas fa-redo mr-1.5"></i>Regenerate
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="gallery" class="py-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <span class="text-indigo-400 text-sm font-semibold uppercase tracking-wider">Community Gallery</span>
+                <h2 class="text-4xl md:text-5xl font-bold mt-3 mb-4">Recently <span class="gradient-text">Generated</span></h2>
+                <p class="text-gray-400 max-w-xl mx-auto">See what others are creating with NexaAI</p>
+            </div>
+            
+            <div class="gallery-grid" id="galleryGrid">
+            </div>
+            
+            <div class="text-center mt-10">
+                <button onclick="loadMoreGallery()" class="px-6 py-3 rounded-xl border border-gray-700 text-gray-400 hover:border-indigo-500 hover:text-indigo-400 transition-all text-sm font-medium">
+                    <i class="fas fa-th-large mr-2"></i>Load More
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 px-4 relative">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-purple-950/10 to-transparent pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-16">
+                <span class="text-indigo-400 text-sm font-semibold uppercase tracking-wider">Why NexaAI?</span>
+                <h2 class="text-4xl md:text-5xl font-bold mt-3 mb-4">Better Than <span class="gradient-text">Paid Alternatives</span></h2>
+                <p class="text-gray-400 max-w-xl mx-auto">We provide all the features that competitors charge hundreds for — completely free</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Comparison Card -->
+                <div class="card-glass rounded-2xl p-6">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-xmark text-red-400"></i> Other AI Platforms
+                    </h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-center gap-3 text-sm text-gray-400">
+                            <i class="fas fa-circle-xmark text-red-400/60"></i> $20-$100/month subscription
+                        </li>
+                        <li class="flex items-center gap-3 text-sm text-gray-400">
+                            <i class="fas fa-circle-xmark text-red-400/60"></i> Limited credits per month
+                        </li>
+                        <li class="flex items-center gap-3 text-sm text-gray-400">
+                            <i class="fas fa-circle-xmark text-red-400/60"></i> Watermarks on free tier
+                        </li>
+                        <li class="flex items-center gap-3 text-sm text-gray-400">
+                            <i class="fas fa-circle-xmark text-red-400/60"></i> Low resolution output
+                        </li>
+                        <li class="flex items-center gap-3 text-sm text-gray-400">
+                            <i class="fas fa-circle-xmark text-red-400/60"></i> Long queue times
+                        </li>
+                        <li class="flex items-center gap-3 text-sm text-gray-400">
+                            <i class="fas fa-circle-xmark text-red-400/60"></i> Account required
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card-glass rounded-2xl p-6 border-indigo-500/20" style="border: 1px solid rgba(99,102,241,0.3); background: rgba(99,102,241,0.05);">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-check text-emerald-400"></i> NexaAI <span class="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">FREE</span>
+                    </h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-center gap-3 text-sm text-white">
+                            <i class="fas fa-circle-check text-emerald-400"></i> 100% Free forever
+                        </li>
+                        <li class="flex items-center gap-3 text-sm text-white">
+                            <i class="fas fa-circle-check text-emerald-400"></i> Unlimited generations
+                        </li>
+                        <li class="flex items-center gap-3 text-sm text-white">
+                            <i class="fas fa-circle-check text-emerald-400"></i> No watermarks
+                        </li>
+                        <li class="flex items-center gap-3 text-sm text-white">
+                            <i class="fas fa-circle-check text-emerald-400"></i> Up to 4K resolution
+                        </li>
+                        <li class="flex items-center gap-3 text-sm text-white">
+                            <i class="fas fa-circle-check text-emerald-400"></i> Priority fast processing
+                        </li>
+                        <li class="flex items-center gap-3 text-sm text-white">
+                            <i class="fas fa-circle-check text-emerald-400"></i> No account needed
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Additional Features -->
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-12">
+                <div class="card-glass rounded-2xl p-5 text-center">
+                    <div class="text-3xl mb-3">⚡</div>
+                    <h4 class="font-bold text-sm mb-1">Lightning Fast</h4>
+                    <p class="text-xs text-gray-400">Generate videos in under 30 seconds</p>
+                </div>
+                <div class="card-glass rounded-2xl p-5 text-center">
+                    <div class="text-3xl mb-3">🔒</div>
+                    <h4 class="font-bold text-sm mb-1">Private & Secure</h4>
+                    <p class="text-xs text-gray-400">Your data is never stored or shared</p>
+                </div>
+                <div class="card-glass rounded-2xl p-5 text-center">
+                    <div class="text-3xl mb-3">🌍</div>
+                    <h4 class="font-bold text-sm mb-1">100+ Languages</h4>
+                    <p class="text-xs text-gray-400">Create content in any language</p>
+                </div>
+                <div class="card-glass rounded-2xl p-5 text-center">
+                    <div class="text-3xl mb-3">📱</div>
+                    <h4 class="font-bold text-sm mb-1">Works Everywhere</h4>
+                    <p class="text-xs text-gray-400">Desktop, tablet, and mobile ready</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="py-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <span class="text-indigo-400 text-sm font-semibold uppercase tracking-wider">Testimonials</span>
+                <h2 class="text-4xl md:text-5xl font-bold mt-3 mb-4">Loved by <span class="gradient-text">Creators</span></h2>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-5">
+                <div class="card-glass rounded-2xl p-6">
+                    <div class="flex gap-1 mb-3">
+                        <i class="fas fa-star text-amber-400 text-sm"></i>
+                        <i class="fas fa-star text-amber-400 text-sm"></i>
+                        <i class="fas fa-star text-amber-400 text-sm"></i>
+                        <i class="fas fa-star text-amber-400 text-sm"></i>
+                        <i class="fas fa-star text-amber-400 text-sm"></i>
+                    </div>
+                    <p class="text-sm text-gray-300 mb-4">"I can't believe this is free. The quality rivals Runway and Pika Labs. I've been using it for my YouTube channel and the results are incredible."</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-xs font-bold">AK</div>
+                        <div>
+                            <div class="text-sm font-semibold">Alex Kumar</div>
+                            <div class="text-xs text-gray-500">YouTuber • 250K Subs</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-glass rounded-2xl p-6">
+                    <div class="flex gap-1 mb-3">
+                        <i class="fas fa-star text-amber-400 text-sm"></i>
+                        <i class="fas fa-star text-amber-400 text-sm"></i>
+                        <i class="fas fa-star text-amber-400 text-sm"></i>
+                        <i class="fas fa-star text-amber-400 text-sm"></i>
+                        <i class="fas fa-star text-amber-400 text-sm"></i>
+                    </div>
+                    <p class="text-sm text-gray-300 mb-4">"Switched from Kling AI's paid plan to NexaAI. Same quality, zero cost. The unlimited generations are a game changer for my agency."</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-xs font-bold">SM</div>
+                        <div>
+                            <div class="text-sm font-semibold">Sarah Mitchell</div>
+                            <div class="text-xs text-gray-500">Creative Director</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-glass rounded-2xl p-6">
+                    <div class="flex gap-1 mb-3">
+                        <i class="fas fa-star text-amber-400 text-sm"></i>
+                        <i class="fas fa-star text-amber-400 text-sm"></i>
+                        <i class="fas fa-star text-amber-400 text-sm"></i>
+                        <i class="fas fa-star text-amber-400 text-sm"></i>
+                        <i class="fas fa-star text-amber-400 text-sm"></i>
+                    </div>
+                    <p class="text-sm text-gray-300 mb-4">"The anime style generation is mind-blowing. Better than anything I've tried. And no watermarks? This is honestly too good to be true."</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-xs font-bold">RJ</div>
+                        <div>
+                            <div class="text-sm font-semibold">Raj Joshi</div>
+                            <div class="text-xs text-gray-500">Digital Artist</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="py-20 px-4">
+        <div class="max-w-3xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4">Frequently Asked <span class="gradient-text">Questions</span></h2>
+            </div>
+            
+            <div class="space-y-3" id="faqContainer">
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 px-4">
+        <div class="max-w-4xl mx-auto">
+            <div class="rounded-3xl p-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+                <div class="bg-[#0a0a1a] rounded-[22px] p-8 md:p-14 text-center">
+                    <h2 class="text-3xl md:text-5xl font-bold mb-4">Ready to Create <span class="gradient-text">Magic</span>?</h2>
+                    <p class="text-gray-400 mb-8 max-w-lg mx-auto">Join 500,000+ creators already using NexaAI. Start generating stunning videos for free — no limits, no signup.</p>
+                    <button onclick="scrollToGenerator()" class="generate-btn px-10 py-4 rounded-2xl text-lg font-bold text-white inline-flex items-center gap-3">
+                        <i class="fas fa-rocket"></i>
+                        Start Creating — It's Free
+                    </button>
+                    <p class="text-xs text-gray-600 mt-4">No credit card • No signup • No limits</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800/50 py-12 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                            <i class="fas fa-bolt text-white text-lg"></i>
+                        </div>
+                        <span class="text-xl font-bold">Nexa<span class="gradient-text">AI</span></span>
+                    </div>
+                    <p class="text-sm text-gray-500 leading-relaxed">The world's most powerful free AI video generation platform. Create unlimited content without any restrictions.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-sm mb-3">Tools</h4>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-white transition-colors">Text to Video</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Image to Video</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">AI Art Generator</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Video Editor</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">AI Music</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-sm mb-3">Resources</h4>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-white transition-colors">API Documentation</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Blog</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Tutorials</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Community</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-sm mb-3">Connect</h4>
+                    <div class="flex gap-3">
+                        <a href="#" class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-indigo-500/20 hover:text-indigo-400 transition-all text-gray-500">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-indigo-500/20 hover:text-indigo-400 transition-all text-gray-500">
+                            <i class="fab fa-discord"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-indigo-500/20 hover:text-indigo-400 transition-all text-gray-500">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-indigo-500/20 hover:text-indigo-400 transition-all text-gray-500">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800/50 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-xs text-gray-600">© 2025 NexaAI. All rights reserved. Free forever.</p>
+                <div class="flex gap-6 text-xs text-gray-600">
+                    <a href="#" class="hover:text-white transition-colors">Privacy</a>
+                    <a href="#" class="hover:text-white transition-colors">Terms</a>
+                    <a href="#" class="hover:text-white transition-colors">Contact</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
+        <div class="card-glass rounded-xl px-5 py-3 flex items-center gap-3 shadow-2xl border border-emerald-500/20">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                <i class="fas fa-check text-emerald-400 text-sm"></i>
+            </div>
+            <div>
+                <div class="text-sm font-semibold" id="toastTitle">Success!</div>
+                <div class="text-xs text-gray-400" id="toastMessage">Video generated successfully</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Star Background
+        const canvas = document.getElementById('starCanvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight * 5;
+        }
+        
+        function createStars() {
+            stars = [];
+            for (let i = 0; i < 200; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 1.5,
+                    opacity: Math.random() * 0.5 + 0.1,
+                    speed: Math.random() * 0.5 + 0.1
+                });
+            }
+        }
+        
+        function drawStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(165, 180, 252, ${star.opacity})`;
+                ctx.fill();
+                star.opacity += Math.sin(Date.now() * star.speed * 0.001) * 0.005;
+                star.opacity = Math.max(0.05, Math.min(0.6, star.opacity));
+            });
+            requestAnimationFrame(drawStars);
+        }
+        
+        resizeCanvas();
+        createStars();
+        drawStars();
+        window.addEventListener('resize', () => { resizeCanvas(); createStars(); });
+
+        // Character Count
+        const promptInput = document.getElementById('videoPrompt');
+        const charCount = document.getElementById('charCount');
+        
+        promptInput.addEventListener('input', () => {
+            charCount.textContent = `${promptInput.value.length} / 2000`;
+        });
+
+        // Range Sliders
+        document.getElementById('cfgScale').addEventListener('input', (e) => {
+            document.getElementById('cfgValue').textContent = e.target.value;
+        });
+        document.getElementById('motionScale').addEventListener('input', (e) => {
+            document.getElementById('motionValue').textContent = e.target.value;
+        });
+
+        // Tab Switching
+        function switchTab(tab) {
+            ['text', 'image', 'edit'].forEach(t => {
+                document.getElementById(`tab-${t}`).className = t === tab ? 'tab-active px-5 py-2.5 rounded-xl text-sm font-semibold transition-all' : 'tab-inactive px-5 py-2.5 rounded-xl text-sm font-semibold transition-all';
+                document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== tab);
+            });
+        }
+
+        // Style Selection
+        function selectStyle(el) {
+            document.querySelectorAll('.style-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        // Advanced Settings Toggle
+        function toggleAdvanced() {
+            const panel = document.getElementById('advancedPanel');
+            const arrow = document.getElementById('advancedArrow');
+            panel.classList.toggle('hidden');
+            arrow.style.transform = panel.classList.contains('hidden') ? '' : 'rotate(180deg)';
+        }
+
+        // Sample Prompts
+        const samplePrompts = [
+            "A majestic dragon flying over a misty mountain range at golden hour, cinematic camera movement, volumetric lighting, 4K ultra-realistic quality",
+            "An astronaut floating in deep space with colorful nebulas in the background, slow rotation, stars twinkling, cinematic atmosphere",
+            "A cyberpunk city at night with neon lights reflecting on wet streets, flying cars, holographic billboards, rain drops, blade runner style",
+            "A beautiful underwater coral reef scene with tropical fish swimming, sunlight filtering through the ocean surface, crystal clear water, nature documentary style",
+            "A samurai standing on a cliff overlooking ancient Japanese temple during cherry blossom season, wind blowing petals, epic cinematic shot",
+            "A futuristic robot walking through a post-apocalyptic desert landscape, dramatic dust storms, orange sky, detailed mechanical design",
+            "Time-lapse of a flower blooming in a enchanted forest with magical particles and fairy lights, dreamy atmosphere, macro photography"
+        ];
+        
+        let promptIndex = 0;
+        function fillSamplePrompt() {
+            promptInput.value = samplePrompts[promptIndex % samplePrompts.length];
+            charCount.textContent = `${promptInput.value.length} / 2000`;
+            promptIndex++;
+        }
+
+        // Image Upload
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('previewImage').src = e.target.result;
+                    document.getElementById('previewImage').classList.remove('hidden');
+                    document.getElementById('uploadContent').classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Video Generation
+        const processingMessages = [
+            { title: "Analyzing prompt...", subtitle: "Understanding your creative vision", icon: "fa-brain" },
+            { title: "Generating frames...", subtitle: "Creating visual content with AI", icon: "fa-film" },
+            { title: "Applying style transfer...", subtitle: "Adding cinematic effects", icon: "fa-palette" },
+            { title: "Enhancing quality...", subtitle: "Upscaling to selected resolution", icon: "fa-arrow-up-right-dots" },
+            { title: "Rendering video...", subtitle: "Compiling final output", icon: "fa-video" },
+            { title: "Adding finishing touches...", subtitle: "Almost done!", icon: "fa-sparkles" },
+        ];
+
+        // Sample video URLs (using placeholder animations)
+        const sampleVideos = [
+            "https://sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4"
+        ];
+
+        function generateVideo() {
+            const prompt = promptInput.value.trim();
+            if (!prompt && document.getElementById('panel-text').style.display !== 'none') {
+                showToast('Please enter a prompt', 'Describe the video you want to create');
+                promptInput.focus();
+                return;
+            }
+
+            const btn = document.getElementById('generateBtn');
+            const loading = document.getElementById('loadingState');
+            const result = document.getElementById('resultArea');
+            const stepsContainer = document.getElementById('processingSteps');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            result.classList.add('hidden');
+            loading.classList.remove('hidden');
+            stepsContainer.innerHTML = '';
+
+            let progress = 0;
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const etaText = document.getElementById('etaText');
+            const loadingTitle = document.getElementById('loadingTitle');
+            const loadingSubtitle = document.getElementById('loadingSubtitle');
+
+            progressBar.style.width = '0%';
+            progressBar.style.animation = 'none';
+
+            let stepIndex = 0;
+            const totalTime = 8000;
+            const stepInterval = totalTime / processingMessages.length;
+
+            const stepTimer = setInterval(() => {
+                if (stepIndex < processingMessages.length) {
+                    const msg = processingMessages[stepIndex];
+                    loadingTitle.textContent = msg.title;
+                    loadingSubtitle.textContent = msg.subtitle;
+
+                    const stepEl = document.createElement('div');
+                    stepEl.className = 'flex items-center gap-2 text-xs animate-fadeIn';
+                    stepEl.innerHTML = `
+                        <i class="fas ${msg.icon} text-indigo-400 w-4"></i>
+                        <span class="text-gray-400">${msg.title}</span>
+                        <i class="fas fa-check text-emerald-400 ml-auto"></i>
+                    `;
+                    stepsContainer.appendChild(stepEl);
+                    stepIndex++;
+                }
+            }, stepInterval);
+
+            const progressTimer = setInterval(() => {
+                progress += Math.random() * 3 + 1;
+                if (progress > 95) progress = 95;
+                progressBar.style.width = progress + '%';
+                progressText.textContent = Math.round(progress) + '%';
+                const remainingTime = Math.max(1, Math.round((100 - progress) / 12));
+                etaText.textContent = `ETA: ~${remainingTime}s`;
+            }, 300);
+
+            setTimeout(() => {
+                clearInterval(stepTimer);
+                clearInterval(progressTimer);
+                
+                progressBar.style.width = '100%';
+                progressText.textContent = '100%';
+                etaText.textContent = 'Complete!';
+                loadingTitle.textContent = 'Video ready!';
+                loadingSubtitle.textContent = 'Your video has been generated';
+
+                setTimeout(() => {
+                    loading.classList.add('hidden');
+                    result.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Generate Video <span class="text-sm font-normal opacity-75">— It\'s Free!</span>';
+                    
+                    document.getElementById('resultTitle').textContent = prompt ? prompt.substring(0, 60) + (prompt.length > 60 ? '...' : '') : 'Generated Video';
+                    
+                    showToast('Video Generated! 🎉', 'Your video is ready to download');
+                    
+                    result.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 800);
+            }, totalTime);
+        }
+
+        function downloadVideo() {
+            showToast('Download Started', 'Your video is being prepared for download');
+            // Simulate download
+            setTimeout(() => {
+                const a = document.createElement('a');
+                a.href = '#';
+                a.download = 'nexaai-video.mp4';
+                showToast('Note', 'This is a demo — connect a real AI API for actual generation');
+            }, 1000);
+        }
+
+        function shareVideo() {
+            if (navigator.share) {
+                navigator.share({ title: 'NexaAI Generated Video', text: 'Check out this AI generated video!', url: window.location.href });
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                showToast('Link Copied!', 'Share link copied to clipboard');
+            }
+        }
+
+        function showToast(title, message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            toast.style.animation = 'slideUp 0.3s ease-out';
+            setTimeout(() => { toast.classList.add('hidden'); }, 3000);
+        }
+
+        function scrollToGenerator() {
+            document.getElementById('generator').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Gallery
+        const galleryItems = [
+            { title: "Dragon in Storm", prompt: "A fire-breathing dragon flying through a thunderstorm", style: "Cinematic", gradient: "from-red-600 to-orange-700", icon: "fa-dragon" },
+            { title: "Neon City Night", prompt: "Cyberpunk city streets with neon reflections on rain", style: "Sci-Fi", gradient: "from-cyan-600 to-blue-800", icon: "fa-city" },
+            { title: "Space Explorer", prompt: "Astronaut discovering alien planet with two suns", style: "Realistic", gradient: "from-purple-600 to-indigo-800", icon: "fa-user-astronaut" },
+            { title: "Cherry Blossom", prompt: "Japanese temple during cherry blossom season at sunset", style: "Anime", gradient: "from-pink-500 to-rose-700", icon: "fa-torii-gate" },
+            { title: "Ocean Deep", prompt: "Bioluminescent creatures in the deep ocean abyss", style: "Cinematic", gradient: "from-teal-600 to-blue-900", icon: "fa-water" },
+            { title: "Robot Future", prompt: "Friendly robot playing with children in a futuristic park", style: "3D Render", gradient: "from-amber-500 to-yellow-700", icon: "fa-robot" },
+            { title: "Ancient Ruins", prompt: "Exploring ancient mystical ruins covered in vines and moss", style: "Cinematic", gradient: "from-emerald-600 to-green-800", icon: "fa-landmark" },
+            { title: "Arctic Aurora", prompt: "Northern lights over a frozen landscape with ice castles", style: "Realistic", gradient: "from-violet-500 to-blue-700", icon: "fa-snowflake" },
+        ];
+
+        function renderGallery() {
+            const grid = document.getElementById('galleryGrid');
+            grid.innerHTML = '';
+            galleryItems.forEach((item, i) => {
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.style.animation = `slideUp 0.5s ease-out ${i * 0.1}s forwards`;
+                card.style.opacity = '0';
+                card.innerHTML = `
+                    <div class="aspect-video-custom bg-gradient-to-br ${item.gradient} flex items-center justify-center relative">
+                        <i class="fas ${item.icon} text-6xl text-white/20"></i>
+                        <div class="absolute bottom-3 left-3 right-3 z-20">
+                            <h3 class="font-bold text-sm text-white">${item.title}</h3>
+                            <p class="text-[11px] text-white/60 mt-0.5">${item.prompt.substring(0, 50)}...</p>
+                        </div>
+                        <div class="absolute top-3 right-3 z-20">
+                            <span class="px-2 py-0.5 rounded-md bg-black/40 text-[10px] text-white/80 backdrop-blur-sm">${item.style}</span>
+                        </div>
+                        <div class="video-overlay">
+                            <div class="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                                <i class="fas fa-play text-white text-xl ml-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                card.onclick = () => {
+                    promptInput.value = item.prompt;
+                    charCount.textContent = `${item.prompt.length} / 2000`;
+                    scrollToGenerator();
+                };
+                grid.appendChild(card);
+            });
+        }
+
+        function loadMoreGallery() {
+            const moreItems = [
+                { title: "Enchanted Forest", prompt: "A magical forest with glowing mushrooms and fairy dust", style: "Fantasy", gradient: "from-green-500 to-emerald-800", icon: "fa-tree" },
+                { title: "Steampunk Airship", prompt: "Massive steampunk airship flying over Victorian London", style: "Steampunk", gradient: "from-amber-700 to-stone-800", icon: "fa-gear" },
+                { title: "Tropical Paradise", prompt: "Crystal clear tropical beach with colorful sunset", style: "Realistic", gradient: "from-sky-400 to-blue-600", icon: "fa-umbrella-beach" },
+                { title: "Mech Battle", prompt: "Giant mechs battling in a destroyed futuristic city", style: "Anime", gradient: "from-red-700 to-gray-800", icon: "fa-shield-halved" },
+            ];
+            galleryItems.push(...moreItems);
+            renderGallery();
+            showToast('Gallery Updated', `${moreItems.length} new videos loaded`);
+        }
+
+        renderGallery();
+
+        // FAQ
+        const faqs = [
+            { q: "Is NexaAI really free?", a: "Yes! NexaAI is 100% free to use. There are no hidden charges, no credit limits, and no subscription fees. We believe AI tools should be accessible to everyone." },
+            { q: "How many videos can I generate?", a: "There are no limits! You can generate as many videos as you want, whenever you want. We don't impose any daily, weekly, or monthly limits." },
+            { q: "Do I need to create an account?", a: "No account or signup is required. Simply visit the website, enter your prompt, and start generating videos immediately." },
+            { q: "What video quality is available?", a: "We support video generation up to 4K Ultra HD resolution. You can choose from 720p, 1080p, 2K, and 4K quality options." },
+            { q: "Are there watermarks on the videos?", a: "No! All generated videos are completely watermark-free. You own the full rights to your creations and can use them for any purpose." },
+            { q: "How does NexaAI compare to Kling AI, Veo3, or Pixverse?", a: "NexaAI uses state-of-the-art AI models comparable to top platforms like Kling AI, Google Veo3, and Pixverse — but completely free with no limits." },
+        ];
+
+        const faqContainer = document.getElementById('faqContainer');
+        faqs.forEach((faq, i) => {
+            const el = document.createElement('div');
+            el.className = 'card-glass rounded-xl overflow-hidden';
+            el.innerHTML = `
+                <button onclick="toggleFaq(${i})" class="w-full px-5 py-4 flex items-center justify-between text-left">
+                    <span class="text-sm font-semibold pr-4">${faq.q}</span>
+                    <i class="fas fa-plus text-indigo-400 text-sm flex-shrink-0 transition-transform" id="faqIcon${i}"></i>
+                </button>
+                <div id="faqAnswer${i}" class="hidden px-5 pb-4">
+                    <p class="text-sm text-gray-400 leading-relaxed">${faq.a}</p>
+                </div>
+            `;
+            faqContainer.appendChild(el);
+        });
+
+        function toggleFaq(index) {
+            const answer = document.getElementById(`faqAnswer${index}`);
+            const icon = document.getElementById(`faqIcon${index}`);
+            answer.classList.toggle('hidden');
+            icon.className = answer.classList.contains('hidden') 
+                ? 'fas fa-plus text-indigo-400 text-sm flex-shrink-0 transition-transform' 
+                : 'fas fa-minus text-indigo-400 text-sm flex-shrink-0 transition-transform';
+        }
+
+        // Intersection Observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.card-glass').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'all 0.6s ease-out';
+            observer.observe(el);
+        });
+
+        // Typewriter effect for hero
+        const heroTexts = ['Videos', 'Stories', 'Content', 'Dreams', 'Magic'];
+        let textIndex = 0;
+        // Auto-generate video count animation
+        let count = 2400000;
+        setInterval(() => {
+            count += Math.floor(Math.random() * 5) + 1;
+            const formatted = (count / 1000000).toFixed(1) + 'M+';
+            document.getElementById('videoCount').textContent = formatted;
+        }, 3000);
+    </script>
+</body>
+</html>
